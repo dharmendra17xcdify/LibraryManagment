@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+	<meta charset="utf-8" />
+    <link href="Content/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="col-md-10 col-md-offset-1">
+        <h2 class="text-center">Assigned Book List</h2>
+       
+        <div class="well" id="divData">
+            <table class="table table-bordered" id="tblData">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User ID</th>
+                        
+                        <th>Book ID</th>
+                        </tr>
+                </thead>
+                <tbody id="tblBody"></tbody>
+            </table>
+        </div>
+        <a class="btn btn-primary pull-right" href="Data.html">Back</a>
+    </div>
+
+
+    <script src="Scripts/jquery-1.10.2.min.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script type="text/javascript">
+
+        $.ajax({
+            url: '/api/assignedbooks',
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+            },
+            success: function (data) {
+                $.each(data, function (index, value) {
+                    var row = $('<tr><td>' + value.ID + '</td><td>'
+                        + value.UserID + '</td><td>'
+                        + value.BookID + '</td></tr>');
+                    $('#tblBody').append(row);
+
+                    
+                });
+            }
+
+        });
+
+                
+
+
+    </script>
+</body>
+</html>

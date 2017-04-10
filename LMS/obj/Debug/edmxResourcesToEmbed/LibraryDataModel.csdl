@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="LibraryDBModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityType Name="AssignedBook">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="UserID" Type="Int32" />
+    <Property Name="BookID" Type="Int32" />
+    <NavigationProperty Name="Book" Relationship="Self.FK__AssignedB__BookI__4E88ABD4" FromRole="AssignedBooks" ToRole="Books" />
+    <NavigationProperty Name="User" Relationship="Self.FK__AssignedB__UserI__4D94879B" FromRole="AssignedBooks" ToRole="Users" />
+  </EntityType>
+  <EntityType Name="Book">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Title" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Author" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Edition" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <NavigationProperty Name="AssignedBooks" Relationship="Self.FK__AssignedB__BookI__4E88ABD4" FromRole="Books" ToRole="AssignedBooks" />
+  </EntityType>
+  <EntityType Name="User">
+    <Key>
+      <PropertyRef Name="UserID" />
+    </Key>
+    <Property Name="UserID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="UserName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Password" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <NavigationProperty Name="AssignedBooks" Relationship="Self.FK__AssignedB__UserI__4D94879B" FromRole="Users" ToRole="AssignedBooks" />
+  </EntityType>
+  <Association Name="FK__AssignedB__BookI__4E88ABD4">
+    <End Role="Books" Type="Self.Book" Multiplicity="0..1" />
+    <End Role="AssignedBooks" Type="Self.AssignedBook" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Books">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="AssignedBooks">
+        <PropertyRef Name="BookID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__AssignedB__UserI__4D94879B">
+    <End Role="Users" Type="Self.User" Multiplicity="0..1" />
+    <End Role="AssignedBooks" Type="Self.AssignedBook" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Users">
+        <PropertyRef Name="UserID" />
+      </Principal>
+      <Dependent Role="AssignedBooks">
+        <PropertyRef Name="UserID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="LibraryDBEntities" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="AssignedBooks" EntityType="Self.AssignedBook" />
+    <EntitySet Name="Books" EntityType="Self.Book" />
+    <EntitySet Name="Users" EntityType="Self.User" />
+    <AssociationSet Name="FK__AssignedB__BookI__4E88ABD4" Association="Self.FK__AssignedB__BookI__4E88ABD4">
+      <End Role="Books" EntitySet="Books" />
+      <End Role="AssignedBooks" EntitySet="AssignedBooks" />
+    </AssociationSet>
+    <AssociationSet Name="FK__AssignedB__UserI__4D94879B" Association="Self.FK__AssignedB__UserI__4D94879B">
+      <End Role="Users" EntitySet="Users" />
+      <End Role="AssignedBooks" EntitySet="AssignedBooks" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

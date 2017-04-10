@@ -1,0 +1,217 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <link href="Content/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body style="padding-top:20px">
+    <div class="col-md-10 col-md-offset-1"><h2 class="text-center">Library Management System</h2>
+        <div class="well">
+            <input type="button" id="btnLoadBooks" class="btn btn-success" value="Home" />
+            <span id="spanUsername" class="text-muted"></span>
+
+            <input type="button" id="btnLogoff" class="btn btn-success pull-right" value="Log off" />
+        </div>
+        <div class="well" id="divUserData">
+            <table class="table table-bordered" id="tblUserData">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>User Name</th>
+                        <th>Select User</th>                      
+                    </tr>
+                </thead>
+                <tbody id="tblUserBody"></tbody>
+            </table>
+        </div>
+        <div class="well" id="divData">
+            <table class="table table-bordered" id="tblData">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Book Title</th>
+                        <th>Author Name</th>
+                        <th>Publish Year</th>
+                        <th>Select</th>
+                        
+                       
+                    </tr>
+                </thead>
+                <tbody id="tblBody"></tbody>
+            </table>
+        </div>
+
+        
+            <div class="well">
+                <input type="button" id="btnAddNewBook" class="btn btn-success" value="Add New Book" />
+                <input type="button" id="btnUpdate" class="btn btn-success" value="Update Book Details" />
+                <input type="button" id="btnAssign" class="btn btn-success" value="Assign Book" />
+                <input type="button" id="btnDelete" class="btn btn-danger" value="Delete" />
+            </div>
+        
+
+                <div class="modal fade" tabindex="-1" id="errorModal" data-keyboard="false" data-backdrop="static">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">
+                                    &times;
+                                </button>
+                                <h4 class="modal-title">Session Expired</h4>
+                            </div>
+                            <div class="modal-body">
+                                <h2 class="modal-title">Please close this message to login again</h2>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" data-dismiss="modal" class="btn btn-success">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="divError" class="alert alert-danger collapse">
+                    <a id="linkClose" class="close" href="#">&times;</a>
+                    <div id="divErrorText"></div>
+                </div>
+            </div>
+
+            <script src="Scripts/jquery-1.10.2.min.js"></script>
+            <script src="Scripts/bootstrap.min.js"></script>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $('#spanUsername').text('Hello ' + localStorage.getItem('userName'));
+
+                    if (localStorage.getItem('accessToken') == null) {
+                        window.location.href = "Login.html";
+                    }
+
+                    $('#btnLogoff').click(function () {
+                        localStorage.removeItem('accessToken');
+                        window.location.href = "Login.html";
+                    });
+
+                    $('#btnAddNewBook').click(function () {
+                        window.location.href = "AddNewBook.html";
+                    });
+
+                    $('#btnUpdate').click(function () {
+                        var id = +($('input[name="radio"]:checked').val().trim() || 0)
+                        window.location.href = "Update.html?id=" + id;
+                            
+                    });
+                  
+                      
+                    $('#btnAssign').click(function () {
+                        var userId = +($('input[name="rdo"]:checked').val().trim() || 0);
+                        var bookId = +($('input[name="radio"]:checked').val().trim() || 0);
+                        window.location.href = "AssignedBooks.html";
+                        debugger;
+                            $.ajax({
+                                url: 'api/assignedbooks',
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: {userId,bookId},
+                                
+                                error: function (error) {
+                                    
+                                    alert('Error loading page');
+                                }
+                            });                            
+
+                      });
+                                         
+                   
+                    $('#btnDelete').click(function () {
+                       // $('table tr').has('input[name="chk"]:checked').remove();
+                        // debugger;
+                        if (confirm("Are you sure want to delete this"))
+                        {
+                            var id = +($('input[name="radio"]:checked').val().trim() || 0 )
+                           
+                                $.ajax({
+                                    url: '/api/books/' +id,
+                                    type: 'DELETE',
+                                    contentType: 'application/json',
+                                    dataType: "json",
+                             
+                                    success: function (response) {
+                                        $('#divData').load("api/books");
+                                    },
+                                })
+
+                            }
+                      
+                        
+                    });
+
+
+                    $('#errorModal').on('hidden.bs.modal', function () {
+                        window.location.href = "Login.html";
+                    });
+
+                    $('#linkClose').click(function () {
+                        $('#divError').hide('fade');
+                    });
+
+                    $.ajax({
+                        url: '/api/users',
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+                        },
+                        success: function (data) {
+                            $.each(data, function (index, value) {
+                                var row = $('<tr><td>' + value.UserID + '</td><td>'
+                                    + value.UserName + '</td></tr>');
+                                $('#tblUserData').append(row);
+                               
+                                $("<td />").html("<input type='radio' name= 'rdo'  value='" + value.UserID + " '  />").appendTo(row);
+                            });
+                        }
+                        
+                    });
+
+                    //$('#btnLoadBooks').click(function () {
+                        $.ajax({
+                            url: '/api/books',
+                            method: 'GET',
+                            
+                            headers: {
+                                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+                            },
+                            
+                            success: function (data) {
+                                $('#divData').removeClass('hidden');
+                                $('#tblBody').empty();
+                                $.each(data, function (index, value) {
+                                    var row = $('<tr><td>' + value.ID + '</td><td>'
+                                        + value.Title + '</td><td>'
+                                        + value.Author + '</td><td>'
+                                        + value.Edition + '</td></tr>'                                      
+
+                                        );
+                                    $('#tblData').append(row);
+                                    $("<td />").html("<input type='radio' name= 'radio' value='" + value.ID + " ' />").appendTo(row);
+                                   
+
+                                });
+                            },
+                            error: function (jqXHR) {
+                                if (jqXHR.status == "401") {
+                                    $('#errorModal').modal('show');
+                                }
+                                else {
+                                    $('#divErrorText').text(jqXHR.responseText);
+                                    $('#divError').show('fade');
+                                }
+                            }
+                        });
+
+                    });
+                //});
+            </script>
+           
+</body>
+</html>
