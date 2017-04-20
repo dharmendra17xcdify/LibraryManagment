@@ -15,14 +15,18 @@
                     <tr>
                         <th>ID</th>
                         <th>User ID</th>
-                        
                         <th>Book ID</th>
+                        <th>Remove Book</th>
                         </tr>
                 </thead>
                 <tbody id="tblBody"></tbody>
             </table>
         </div>
-        <a class="btn btn-primary pull-right" href="Data.html">Back</a>
+        <div class="well">  
+            <input type="button" id="delete" class="btn btn-danger pull-right" value="Delete" disabled />
+            <a class="btn btn-primary" href="Data.html">Back</a>
+        </div>
+        
     </div>
 
 
@@ -42,13 +46,30 @@
                         + value.UserID + '</td><td>'
                         + value.BookID + '</td></tr>');
                     $('#tblBody').append(row);
-
-                    
+                    $("<td />").html('<input type="radio" name= "rdo" value="' + value.ID + '"  />').appendTo(row); 
                 });
             }
-
         });
 
+        // Delete book from assigned book list
+        //$('#delete').click(function () {
+
+        //    if (confirm("Are you sure want to delete this")) {
+               
+        //        var id = +($('input[name="rdo"]:checked').val().trim() || 0)
+
+        //        $.ajax({
+        //            url: '/api/AssignedBooks/' + id,
+        //            type: 'DELETE',
+        //            contentType: 'application/json',
+        //            dataType: "json",
+
+        //            success: function (response) {
+        //                $('#divData').load("api/AssignedBooks");
+        //            },
+        //        })
+        //    }
+        //});
                 
 
 

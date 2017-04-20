@@ -23,8 +23,10 @@
                     </tr>
                 </thead>
                 <tbody id="tblUserBody"></tbody>
+                
             </table>
         </div>
+       
         <div class="well" id="divData">
             <table class="table table-bordered" id="tblData">
                 <thead>
@@ -80,6 +82,55 @@
             <script src="Scripts/jquery-1.10.2.min.js"></script>
             <script src="Scripts/bootstrap.min.js"></script>
             <script type="text/javascript">
+
+                // Get Assigned Books
+                function getAssignBooksById() {
+                    var userId = +($('input[name="rdo"]:checked').val().trim() || 0);
+                    
+                    $('input[type=checkbox]').prop('checked', false);
+                    
+                    $.ajax({
+                        url: '/api/AssignedBooks/' + userId,
+                        method: 'GET',
+                        success: function (data) {
+                            $.each(data, function (i,val) {
+                               
+                                $("input:checkbox[value='" + val.BookID + "']").prop('checked', true);
+                                
+                            });
+                           
+                        }
+                    })
+                };
+
+                // Delete book from assigned book list
+              
+                function deleteBook(ID) {              
+                                                  
+                    if (document.getElementById(ID).checked == true) {
+                        return false;
+                    } else {
+                           
+                        var rm = confirm("Are you sure want to delete this")
+                        if (rm == true) {
+
+                            $.ajax({
+                                url: '/api/AssignedBooks/' + ID,
+                                type: 'DELETE',
+                                contentType: 'application/json',
+                                dataType: "json",
+
+                                success: function (response) {
+                                    $('#divData').load("api/AssignedBooks");
+                                },
+                            })
+                        } else {
+                            document.getElementById(ID).checked = true;
+                        }
+                            }
+                        };
+
+
                 $(document).ready(function () {
                     $('#spanUsername').text('Hello ' + localStorage.getItem('userName'));
 
@@ -97,7 +148,7 @@
                     });
 
                     $('#btnUpdate').click(function () {
-                        var id = +($('input[name="radio"]:checked').val().trim() || 0)
+                        var id = +($('input[name="chk"]:checked').val().trim() || 0)
                         window.location.href = "Update.html?id=" + id;
                             
                     });
@@ -105,30 +156,40 @@
                       
                     $('#btnAssign').click(function () {
                         var userId = +($('input[name="rdo"]:checked').val().trim() || 0);
-                        var bookId = +($('input[name="radio"]:checked').val().trim() || 0);
-                        window.location.href = "AssignedBooks.html";
-                        debugger;
-                            $.ajax({
-                                url: 'api/assignedbooks',
-                                type: 'POST',
-                                contentType: 'application/json',
-                                data: {userId,bookId},
-                                
-                                error: function (error) {
-                                    
-                                    alert('Error loading page');
-                                }
-                            });                            
+                      
+                        var bookId = new Array();
 
-                      });
-                                         
-                   
+                        $("input:checkbox[name=chk]:checked").each(function () {
+                            bookId.push($(this).val());
+                        });
+                       
+                            var book = new Object();
+                            book.UserID = userId;
+                            book.Books = bookId;
+
+                            if (bookId.length <= 2)
+                            {
+                                $.post('http://localhost:62554/api/AssignedBooks', book, function (data) {
+                                    console.log(data);
+                                    alert(" Book assigned Successfully ");
+                                    window.location.href = "AssignedBooks.html";
+                                });
+                            }
+                            else
+                            {
+                                alert("Please select only two books")
+                            }
+                    });
+
+
+               
+                    // Delete
                     $('#btnDelete').click(function () {
-                       // $('table tr').has('input[name="chk"]:checked').remove();
-                        // debugger;
+                        
                         if (confirm("Are you sure want to delete this"))
                         {
-                            var id = +($('input[name="radio"]:checked').val().trim() || 0 )
+                           
+                                 var id = +($('input[name="chk"]:checked').val().trim() || 0 )
                            
                                 $.ajax({
                                     url: '/api/books/' +id,
@@ -140,11 +201,8 @@
                                         $('#divData').load("api/books");
                                     },
                                 })
-
-                            }
-                      
-                        
-                    });
+                            }                        
+                            });
 
 
                     $('#errorModal').on('hidden.bs.modal', function () {
@@ -155,6 +213,7 @@
                         $('#divError').hide('fade');
                     });
 
+                    // get user list
                     $.ajax({
                         url: '/api/users',
                         method: 'GET',
@@ -167,12 +226,13 @@
                                     + value.UserName + '</td></tr>');
                                 $('#tblUserData').append(row);
                                
-                                $("<td />").html("<input type='radio' name= 'rdo'  value='" + value.UserID + " '  />").appendTo(row);
+                                $("<td />").html('<input type="radio" name= "rdo" onClick="getAssignBooksById()" value="'+ value.UserID +'"  />').appendTo(row);
                             });
                         }
                         
                     });
-
+                    
+                   
                     //$('#btnLoadBooks').click(function () {
                         $.ajax({
                             url: '/api/books',
@@ -189,11 +249,11 @@
                                     var row = $('<tr><td>' + value.ID + '</td><td>'
                                         + value.Title + '</td><td>'
                                         + value.Author + '</td><td>'
-                                        + value.Edition + '</td></tr>'                                      
+                                        + value.Edition + '</td></tr>'        
 
                                         );
                                     $('#tblData').append(row);
-                                    $("<td />").html("<input type='radio' name= 'radio' value='" + value.ID + " ' />").appendTo(row);
+                                    $("<td />").html("<input type='checkbox' id='"+ value.ID +"' name='chk' onClick=\'deleteBook(" + value.ID + ")\' value='" + value.ID + "' />").appendTo(row);
                                    
 
                                 });

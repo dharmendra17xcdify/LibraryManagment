@@ -9,12 +9,13 @@ using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
 using LMS;
+using LMS.Models.API;
 
 namespace LMS.Controllers
 {
     public class AssignedBooksController : ApiController
     {
-       
+
         public IEnumerable<AssignedBook> Get()
         {
 
@@ -25,18 +26,46 @@ namespace LMS.Controllers
             }
         }
 
-        public HttpResponseMessage Post([FromBody] AssignedBook book)
+        [HttpGet]
+        public HttpResponseMessage LoadAssignedBookById(int id)
+        {
+            using (LibraryDBEntities entities = new LibraryDBEntities())
+            {
+                var entity = entities.AssignedBooks.ToList().Where(e => e.UserID == id);
+
+                if (entity != null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, entity);
+                }
+                else
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Books with userid  = " + id.ToString() + " not found");
+                }
+            }
+        }
+       // method to assigne books
+        public HttpResponseMessage Post([FromBody] BooksAssigned assignedBooks)
         {
             try
             {
                 using (LibraryDBEntities entities = new LibraryDBEntities())
                 {
+                    foreach (var book in assignedBooks.Books)
+                    {
+                        var entity = entities.AssignedBooks.ToList().Where(e => e.UserID == assignedBooks.UserId && e.BookID == book );
 
-                    entities.AssignedBooks.Add(book);
+                        //var bookQty = entities.AssignedBooks.ToList().Where(e => e.UserID == assignedBooks.UserId && e.BookID.Value == book);
+                        //if(bookQty.Count() < 3)                      
+
+                        if(entity.Count() == 0)
+                        {
+                            entities.AssignedBooks.Add(new AssignedBook { UserID = assignedBooks.UserId, BookID = book });
+                        }
+                        
+                    }
                     entities.SaveChanges();
 
-                    var message = Request.CreateResponse(HttpStatusCode.Created, book);
-                    message.Headers.Location = new Uri(Request.RequestUri + book.ID.ToString());
+                    var message = Request.CreateResponse(HttpStatusCode.Created, "true");
                     return message;
                 }
             }
@@ -45,105 +74,32 @@ namespace LMS.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
             }
         }
-        //private LibraryDBEntities db = new LibraryDBEntities();
 
-        //// GET: api/AssignedBooks
-        //public IQueryable<AssignedBook> GetAssignedBooks()
-        //{
-        //    return db.AssignedBooks;
-        //}
+        [HttpDelete]
+        public HttpResponseMessage Delete(int id)
+        {
+            try
+            {
+                using (LibraryDBEntities entities = new LibraryDBEntities())
+                {
+                    var entity = entities.AssignedBooks.FirstOrDefault(e => e.BookID == id);
+                    if (entity == null)
+                    {
+                        return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Book with id " + id.ToString() + " not found to delete");
+                    }
+                    else
+                    {
+                        entities.AssignedBooks.Remove(entity);
+                        entities.SaveChanges();
+                        return Request.CreateResponse(HttpStatusCode.OK);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
+        }
 
-        // GET: api/AssignedBooks/5
-        //[ResponseType(typeof(AssignedBook))]
-        //public IHttpActionResult GetAssignedBook(int id)
-        //{
-        //    AssignedBook assignedBook = db.AssignedBooks.Find(id);
-        //    if (assignedBook == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(assignedBook);
-        //}
-
-        //// PUT: api/AssignedBooks/5
-        //[ResponseType(typeof(void))]
-        //public IHttpActionResult PutAssignedBook(int id, AssignedBook assignedBook)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    if (id != assignedBook.ID)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    db.Entry(assignedBook).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        db.SaveChanges();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!AssignedBookExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return StatusCode(HttpStatusCode.NoContent);
-        //}
-
-        //// POST: api/AssignedBooks
-        //[ResponseType(typeof(AssignedBook))]
-        //public IHttpActionResult PostAssignedBook(AssignedBook assignedBook)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    db.AssignedBooks.Add(assignedBook);
-        //    db.SaveChanges();
-
-        //    return CreatedAtRoute("DefaultApi", new { id = assignedBook.ID }, assignedBook);
-        //}
-
-        //// DELETE: api/AssignedBooks/5
-        //[ResponseType(typeof(AssignedBook))]
-        //public IHttpActionResult DeleteAssignedBook(int id)
-        //{
-        //    AssignedBook assignedBook = db.AssignedBooks.Find(id);
-        //    if (assignedBook == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    db.AssignedBooks.Remove(assignedBook);
-        //    db.SaveChanges();
-
-        //    return Ok(assignedBook);
-        //}
-
-        //protected override void Dispose(bool disposing)
-        //{
-        //    if (disposing)
-        //    {
-        //        db.Dispose();
-        //    }
-        //    base.Dispose(disposing);
-        //}
-
-        //private bool AssignedBookExists(int id)
-        //{
-        //    return db.AssignedBooks.Count(e => e.ID == id) > 0;
-        //}
     }
 }
